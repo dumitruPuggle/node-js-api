@@ -14,6 +14,10 @@ class AuthController {
     async SignIn(@Req() request){
         return await this.authService.signIn(request);
     }
+    @Post('/refresh')
+    async RefreshToken(@Req() request){
+        return await this.authService.refreshToken(request);
+    }
 }
 
 export {AuthController};

@@ -5,6 +5,7 @@ import { User } from 'src/db-model/User.entity';
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 
+
 @Injectable()
 export class AuthService {
   async signUp(@Req() request: Request){
@@ -85,4 +86,23 @@ export class AuthService {
       }, HttpStatus.FORBIDDEN);
     }
   }
+  refreshToken(@Req() request){
+    return new Promise((resolve, reject) => {
+      const refreshToken = request.header('Refresh-Token')
+      jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, function(err, decoded) {
+        if (err){
+          throw new HttpException({
+            status: HttpStatus.FORBIDDEN,
+            error: 'The token is expired or invalid',
+          }, HttpStatus.FORBIDDEN);
+        }
+        const id = decoded?.data?.id
+        const output = {
+          accessToken: jwt.sign({data: {id: id}}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+        }
+        return resolve(output)
+      })
+      return reject("An error has occurred")
+    })
+  } 
 }
