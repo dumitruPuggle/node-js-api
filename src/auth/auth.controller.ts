@@ -6,8 +6,13 @@ class AuthController {
     constructor(private readonly authService: AuthService) {}
     
     @Post('/sign-up')
-    async SignIn(@Req() request): Promise<any>{
+    async SignUp(@Req() request){
         return await this.authService.signUp(request);
+    }
+
+    @Post('/sign-in')
+    async SignIn(@Req() request){
+        return await this.authService.signIn(request);
     }
 }
 
