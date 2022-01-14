@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable, Req } from '@nestjs/common';
 import { Request } from 'express';
 import * as Yup from 'yup'
 import { User } from 'src/db-model/User.entity';
+const bcrypt = require('bcryptjs')
 
 @Injectable()
 export class AuthService {
@@ -29,14 +30,27 @@ export class AuthService {
         .max(250, 'Too Long!')
         .required('Required')
     });
+    async function checkUser(data: {email: string}){
+      const res = await User.findOne({ where: { email: data.email}})
+      return res
+    }
     try{
         const data = await userSchema.validate(request.body)
-        await User.insert(data)
-        return "Success"
+        if(!await checkUser(data)){
+          await User.insert({
+            ...data,
+            pwd: bcrypt.hashSync(data.pwd, bcrypt.genSaltSync(10))
+          })
+          return {
+            "msg": "Success the user has been created successfully."
+          }
+        }else{
+          throw new Error()
+        }
     }catch (err){
       throw new HttpException({
         status: HttpStatus.FORBIDDEN,
-        error: 'Oh, it seems that your body schema is not covering all the requirements',
+        error: 'An unexpected error has occurred, make sure your body content is respecting all the schema requirements. Or probably the email address is already in use.',
       }, HttpStatus.FORBIDDEN);
     }
   }
